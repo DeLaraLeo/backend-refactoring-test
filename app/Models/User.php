@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,7 +21,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     const PER_PAGE = 15; 
 
@@ -152,6 +153,21 @@ class User extends Authenticatable
      * @var Carbon
      */
     private Carbon $updated_at;
+
+    /**
+     * User deleted at (soft delete timestamp)
+     *
+     * @OA\Property(
+     *      property="deleted_at",
+     *      description="User soft delete timestamp",
+     *      type="datetime",
+     *      nullable=true,
+     *      example="2021-01-01 00:00:00"
+     * )
+     *
+     * @var Carbon|null
+     */
+    private ?Carbon $deleted_at;
 
     public function searchFilter(Builder $builder, string $search): Builder
     {

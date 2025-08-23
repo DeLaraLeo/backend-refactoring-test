@@ -20,5 +20,6 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::apiResource('users', UserController::class)->where(['user' => '[0-9]+']);
+    Route::apiResource('users', UserController::class)->whereNumber('user');
+    Route::post('/users/{user_id}/restore', [UserController::class, 'restore'])->whereNumber('user');
 });

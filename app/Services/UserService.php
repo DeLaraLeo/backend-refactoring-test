@@ -14,11 +14,15 @@ class UserService
     ) {}
 
     /**
-     * Get all users
+     * Get all users (active by default, only trashed when trashed=true)
      */
     public function getAllUsers(array $data): LengthAwarePaginator
     {
         $builder = $this->user->newQuery();
+
+        if (data_get($data, 'trashed', false)) {
+            $builder = $builder->onlyTrashed();
+        }
 
         if ($search = data_get($data, 'search')) {
             $builder = $this->user->searchFilter($builder, $search);
@@ -57,8 +61,10 @@ class UserService
         return DB::transaction(function () use ($data, $userId) {
             $user = $this->getUser($userId);
 
-            if (data_get($data, 'password')) {
-                $data['password'] = Hash::make($data['password']);
+            $password = data_get($data, 'password');
+            
+            if ($password) {
+                $data['password'] = Hash::make($password);
             }
 
             $user->update($data);
@@ -69,12 +75,26 @@ class UserService
     }
 
     /**
-     * Delete a user
+     * Soft delete a user
      */
     public function deleteUser(int $userId): void
     {
         DB::transaction(function () use ($userId) {
             $this->getUser($userId)->delete();
+        });
+    }
+
+    /**
+     * Restore a soft deleted user
+     */
+    public function restoreUser(int $userId): User
+    {
+        return DB::transaction(function () use ($userId) {
+            $user = $this->user->withTrashed()->findOrFail($userId);
+            $user->deleted_at = null;
+            $user->save();
+            
+            return $user;
         });
     }
 }

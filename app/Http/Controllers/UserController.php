@@ -25,9 +25,9 @@ class UserController extends Controller
      * @OA\Get(
      *      path="/users",
      *      operationId="getUsersList",
-     *      summary="Get list of users with search and pagination",
+     *      summary="Get list of users with search, pagination and soft delete control",
      *      tags={"Users"},
-     *      description="Returns paginated list of users with optional search functionality",
+     *      description="Returns paginated list of users with optional search. Use trashed=true to get only deleted users",
      *      security={
      *          {"bearerAuth": {}}
      *      },
@@ -44,6 +44,13 @@ class UserController extends Controller
      *          description="Number of items per page (1-100)",
      *          required=false,
      *          @OA\Schema(type="integer", minimum=1, maximum=100)
+     *      ),
+     *      @OA\Parameter(
+     *          name="trashed",
+     *          in="query",
+     *          description="Show only deleted users when true, active users when false/omitted (true/false/1/0)",
+     *          required=false,
+     *          @OA\Schema(type="string", enum={"true", "false", "1", "0"})
      *      ),
      *      @OA\Response(
      *          response=200,
@@ -269,6 +276,63 @@ class UserController extends Controller
         return response()->json([
             'message' => trans('messages.user_deleted')
         ]);
+    }
+
+    /**
+     * Restore a soft deleted user
+     *
+     * @return User
+     *
+     * @OA\Post(
+     *      path="/users/{id}/restore",
+     *      operationId="restoreUser",
+     *      tags={"Users"},
+     *      summary="Restore a soft deleted user",
+     *      description="Restores a soft deleted user by setting deleted_at to null",
+     *      security={
+     *          {"bearerAuth": {}}
+     *      },
+     *      @OA\Parameter(
+     *          name="id",
+     *          description="User ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(type="integer")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="User restored successfully - deleted_at will be null",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="data", ref="#/components/schemas/User", 
+     *                  example={
+     *                      "id": 1,
+     *                      "name": "John Doe",
+     *                      "email": "john@example.com",
+     *                      "email_verified_at": null,
+     *                      "created_at": "2021-01-01T00:00:00.000000Z",
+     *                      "updated_at": "2021-01-01T00:00:00.000000Z",
+     *                      "deleted_at": null
+     *                  }
+     *              )
+     *          )
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="User not found"
+     *      )
+     * )
+     */
+    public function restore(int $userId): UserResource
+    {
+        return UserResource::make($this->userService->restoreUser($userId));
     }
 }
 
