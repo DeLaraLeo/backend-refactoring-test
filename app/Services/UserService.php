@@ -71,10 +71,10 @@ class UserService
     /**
      * Delete a user
      */
-    public function deleteUser(User $user): void
+    public function deleteUser(int $userId): void
     {
-        DB::transaction(function () use ($user) {
-            $user->delete();
+        DB::transaction(function () use ($userId) {
+            $this->getUser($userId)->delete();
         });
     }
 }

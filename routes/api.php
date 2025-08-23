@@ -20,5 +20,5 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::apiResource('users', UserController::class);
+    Route::apiResource('users', UserController::class)->where(['user' => '[0-9]+']);
 });

@@ -262,12 +262,12 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy(int $userId): JsonResponse
     {
-        $this->userService->deleteUser($user);
+        $this->userService->deleteUser($userId);
 
         return response()->json([
-            'message' => 'User deleted successfully'
+            'message' => trans('messages.user_deleted')
         ]);
     }
 }
