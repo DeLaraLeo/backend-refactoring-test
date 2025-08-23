@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserService
@@ -40,13 +40,13 @@ class UserService
      */
     public function createUser(array $data): User
     {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-
-        return $user;
+        return DB::transaction(function () use ($data) {
+            return User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+            ]);
+        });
     }
 
     /**
@@ -54,16 +54,18 @@ class UserService
      */
     public function updateUser(array $data, int $userId): User
     {
-        $user = $this->getUser($userId);
+        return DB::transaction(function () use ($data, $userId) {
+            $user = $this->getUser($userId);
 
-        if (data_get($data, 'password')) {
-            $data['password'] = Hash::make($data['password']);
-        }
+            if (data_get($data, 'password')) {
+                $data['password'] = Hash::make($data['password']);
+            }
 
-        $user->update($data);
-        $user->refresh();
+            $user->update($data);
+            $user->refresh();
 
-        return $user;
+            return $user;
+        });
     }
 
     /**
@@ -71,6 +73,8 @@ class UserService
      */
     public function deleteUser(User $user): void
     {
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            $user->delete();
+        });
     }
 }
