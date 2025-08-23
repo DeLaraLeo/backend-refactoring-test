@@ -112,28 +112,14 @@ class User extends Authenticatable
     private Carbon $email_verified_at;
 
     /**
-     * User password
-     *
-     * @OA\Property(
-     *      property="password",
-     *      description="User password",
-     *      type="string",
-     *      example="password"
-     * )
+     * User password (not exposed in API)
      *
      * @var string
      */
     private string $password;
 
     /**
-     * User remember token
-     *
-     * @OA\Property(
-     *      property="remember_token",
-     *      description="User remember token",
-     *      type="string",
-     *      example="token"
-     * )
+     * User remember token (not exposed in API)
      *
      * @var string
      */
