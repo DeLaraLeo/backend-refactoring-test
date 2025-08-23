@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -20,6 +21,8 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    const PER_PAGE = 15; 
 
     /**
      * The attributes that are mass assignable.
@@ -163,5 +166,12 @@ class User extends Authenticatable
      * @var Carbon
      */
     private Carbon $updated_at;
-}
 
+    public function searchFilter(Builder $builder, string $search): Builder
+    {
+        return $builder->where(function ($query) use ($search) {
+            $query->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%");
+        });
+    }
+}

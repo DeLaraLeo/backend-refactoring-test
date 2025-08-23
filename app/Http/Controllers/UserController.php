@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\IndexUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
 {
-    private User $user;
-
-    function __construct(User $user)
-    {
-        $this->user = $user;
-    }
+    public function __construct(
+        private readonly UserService $userService
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -48,9 +51,9 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function index(Request $request)
+    public function index(IndexUserRequest $request): AnonymousResourceCollection
     {
-        return $this->user->get();
+        return UserResource::collection($this->userService->getAllUsers($request->validated()));
     }
 
     /**
@@ -88,9 +91,9 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function show(User $user)
+    public function show(int $userId): UserResource
     {
-        return $user;
+        return UserResource::make($this->userService->getUser($userId));
     }
 
     /**
@@ -126,15 +129,9 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request): UserResource
     {
-        $data = $request->only([
-            'name',
-            'email',
-            'password',
-        ]);
-
-        return $this->user->create($data);
+        return UserResource::make($this->userService->createUser($request->validated()));
     }
 
     /**
@@ -176,17 +173,9 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, int $userId): UserResource
     {
-        $data = $request->only([
-            'name',
-            'email',
-            'password',
-        ]);
-
-        $user->update($data);
-
-        return $user;
+        return UserResource::make($this->userService->updateUser($request->validated(), $userId));
     }
 
     /**
@@ -224,11 +213,13 @@ class UserController extends Controller
      *      )
      * )
      */
-    public function destroy(User $user)
+    public function destroy(User $user): JsonResponse
     {
-        $user->delete();
+        $this->userService->deleteUser($user);
 
-        return $user;
+        return response()->json([
+            'message' => 'User deleted successfully'
+        ]);
     }
 }
 
