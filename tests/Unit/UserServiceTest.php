@@ -4,6 +4,9 @@ namespace Tests\Unit;
 
 use App\Models\User;
 use App\Services\UserService;
+use App\Services\UserFilterService;
+use App\Filters\TrashedUsersFilter;
+use App\Filters\SearchUsersFilter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,7 +22,14 @@ class UserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->userService = new UserService(new User());
+        
+        $filters = [
+            new TrashedUsersFilter(),
+            new SearchUsersFilter(new User())
+        ];
+        
+        $filterService = new UserFilterService($filters);
+        $this->userService = new UserService(new User(), $filterService);
     }
 
     public function test_get_all_users_returns_paginated_active_users_by_default(): void

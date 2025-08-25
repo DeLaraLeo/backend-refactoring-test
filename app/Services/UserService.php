@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Services\UserFilterService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -10,7 +11,8 @@ use Illuminate\Support\Facades\Hash;
 class UserService
 {
     public function __construct(
-        private readonly User $user
+        private readonly User $user,
+        private readonly UserFilterService $filterService
     ) {}
 
     /**
@@ -19,16 +21,11 @@ class UserService
     public function getAllUsers(array $data): LengthAwarePaginator
     {
         $builder = $this->user->newQuery();
+        $builder = $this->filterService->applyFilters($builder, $data);
 
-        if (data_get($data, 'trashed', false)) {
-            $builder = $builder->onlyTrashed();
-        }
-
-        if ($search = data_get($data, 'search')) {
-            $builder = $this->user->searchFilter($builder, $search);
-        }
-
-        return $builder->paginate(data_get($data, 'per_page', User::PER_PAGE));
+        return $builder
+            ->orderBy('created_at')
+            ->paginate(data_get($data, 'per_page', User::PER_PAGE));
     }
 
     /**
