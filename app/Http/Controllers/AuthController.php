@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,12 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        return response()->json($this->authService->register($request->validated()), 201);
+        $result = $this->authService->register($request->validated());
+        
+        return response()->json([
+            'user' => UserResource::make($result['user']),
+            'token' => $result['token']
+        ], 201);
     }
 
     /**
@@ -85,7 +91,12 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        return response()->json($this->authService->login($request->validated()));
+        $result = $this->authService->login($request->validated());
+        
+        return response()->json([
+            'user' => UserResource::make($result['user']),
+            'token' => $result['token']
+        ]);
     }
 
     /**
